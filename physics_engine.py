@@ -10,8 +10,9 @@ from matplotlib.patches import Circle, Polygon
 from pymunk.vec2d import Vec2d
 
 from utils import rand_float, rand_int, calc_dis, norm
-
-
+import matplotlib
+matplotlib.use("Agg")
+np.random.seed(42)
 class Engine(object):
     def __init__(self, dt, state_dim, action_dim, param_dim):
         self.dt = dt
@@ -91,11 +92,15 @@ class RopeEngine(Engine):
         super(RopeEngine, self).__init__(dt, state_dim, action_dim, param_dim)
 
     def init(self, param=None):
+        #param = None
+        param = (7, 0, 1000, 30, 3)
         if param is None:
             self.n_ball, self.init_x, self.k, self.damping, self.gravity = [None] * 5
+            print("is none")
         else:
             self.n_ball, self.init_x, self.k, self.damping, self.gravity = param
             self.n_ball = int(self.n_ball)
+            #print("value is passed in")
 
         num_mass_range = self.num_mass_range
         position_range = self.position_range
@@ -111,8 +116,8 @@ class RopeEngine(Engine):
             self.gravity = rand_float(self.gravity_range[0], self.gravity_range[1])
         self.param = np.array([self.n_ball, self.init_x, self.k, self.damping, self.gravity])
 
-        # print('Env Rope param: n_ball=%d, init_x=%.4f, k=%.4f, damping=%.4f, gravity=%.4f' % (
-        #     self.n_ball, self.init_x, self.k, self.damping, self.gravity))
+        #print('Env Rope param: n_ball=%d, init_x=%.4f, k=%.4f, damping=%.4f, gravity=%.4f' % (
+            #self.n_ball, self.init_x, self.k, self.damping, self.gravity))
 
         self.space = pymunk.Space()
         self.space.gravity = (0., self.gravity)
@@ -157,6 +162,7 @@ class RopeEngine(Engine):
             c = pymunk.DampedSpring(
                 self.balls[i], self.balls[i + 1], (0, 0), (0, 0),
                 rest_length=self.rest_len * give, stiffness=self.k, damping=self.damping)
+                #rest_length=self.rest_len * give, stiffness=self.k + rand_float(-500,500), damping=self.damping)
             self.space.add(c)
 
         # add bihop springs
@@ -165,10 +171,13 @@ class RopeEngine(Engine):
                 c = pymunk.DampedSpring(
                     self.balls[i], self.balls[i + 2], (0, 0), (0, 0),
                     rest_length=self.rest_len * give * 2, stiffness=self.k * 0.5, damping=self.damping)
+                    #rest_length=self.rest_len * give * 2, stiffness=self.k * 0.5 + rand_float(-500,500), damping=self.damping)
                 self.space.add(c)
 
     def add_impulse(self):
         impulse = (self.action[0], 0)
+        #self.balls[0].apply_impulse_at_local_point(impulse=impulse, point=(0, 0))
+        ##
         self.balls[0].apply_impulse_at_local_point(impulse=impulse, point=(0, 0))
 
     def get_param(self):
@@ -288,7 +297,7 @@ class RopeEngine(Engine):
             out.release()
 
 
-# ===================================================================
+# =================================================================== 
 '''
 For Soft and Swim
 '''

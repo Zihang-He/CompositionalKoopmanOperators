@@ -93,7 +93,7 @@ def mix_iters(iters):
         table += [i] * len(iter)
     np.random.shuffle(table)
     for i in table:
-        yield iters[i].next()
+        yield next(iters[i])
 
 
 class Tee(object):

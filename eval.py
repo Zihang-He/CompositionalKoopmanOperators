@@ -1,7 +1,7 @@
 import os
 
 from config import gen_args
-from data import normalize, denormalize
+from data import normalize, denormalize, PhysicsDataset
 from models.CompositionalKoopmanOperators import CompositionalKoopmanOperators
 from models.KoopmanBaselineModel import KoopmanBaseline
 from physics_engine import SoftEngine, RopeEngine, SwimEngine
@@ -21,9 +21,23 @@ data_names = ['attrs', 'states', 'actions']
 prepared_names = ['attrs', 'states', 'actions', 'rel_attrs']
 
 data_dir = os.path.join(args.dataf, args.eval_set)
+print(data_dir)
 
-print(f"Load stored dataset statistics from {args.stat_path}!")
-stat = load_data(data_names, args.stat_path)
+# print(f"Load stored dataset statistics from {args.stat_path}!")
+# stat = load_data(data_names, args.stat_path)
+# print("stat:")
+# print(len(stat[0]),len(stat[1]),len(stat[2]))
+# print(stat)
+
+print(f"Generate dataset statistics")
+datasets = {phase: PhysicsDataset(args, phase) for phase in ['train', 'valid']}
+if args.gen_data:
+    datasets['valid'].gen_data()
+    stat = datasets['valid'].stat
+else:
+    print(f"Load stored dataset statistics from {args.stat_path}!")
+    print(args.stat_path)
+    stat = load_data(data_names, args.stat_path)
 
 if args.env == 'Rope':
     engine = RopeEngine(args.dt, args.state_dim, args.action_dim, args.param_dim)
@@ -33,7 +47,7 @@ elif args.env == 'Swim':
     engine = SwimEngine(args.dt, args.state_dim, args.action_dim, args.param_dim)
 else:
     assert False
-
+ 
 
 os.system('mkdir -p ' + args.evalf)
 log_path = os.path.join(args.evalf, 'log.txt')
@@ -94,7 +108,11 @@ def eval(idx_rollout, video=True):
 
     param_file = os.path.join(data_dir, str(idx_rollout // args.group_size) + '.param')
     param = torch.load(param_file)
+    # print("this param is:")
+    # print(param)
     engine.init(param)
+    # engine.init()
+    # myparam = engine.get_param()
 
     '''
     fit data
@@ -139,7 +157,10 @@ def eval(idx_rollout, video=True):
     '''
 
     g = model.to_g(attrs, states, rel_attrs, args.pstep)
-
+    # print("g,attrs,state,rel_attr")
+    # print(attrs)
+    # print(states)
+    # print(rel_attrs)
     pred_g = None
     for step in range(0, args.time_step - 1):
         # prepare input data
@@ -182,6 +203,9 @@ def eval(idx_rollout, video=True):
         engine.render(states_pred, seq_data[2], param, act_scale=args.act_scale, video=True, image=True,
                       path=os.path.join(args.evalf, str(idx_rollout) + '.pred'),
                       states_gt=states_gt)
+        # engine.render(states_pred, seq_data[2], myparam, act_scale=args.act_scale, video=True, image=True,
+        #                path=os.path.join(args.evalf, str(idx_rollout) + '.pred'),
+        #                states_gt=states_gt)
 
 if __name__ == '__main__':
 

@@ -208,7 +208,7 @@ for epoch in range(st_epoch, args.n_epoch):
         meter_dist_g = AverageMeter()
         meter_dist_s = AverageMeter()
 
-        bar = ProgressBar(max_value=data_n_batches[phase])
+        bar = ProgressBar(maxval=data_n_batches[phase])
 
         loader = dataloaders[phase]()
 

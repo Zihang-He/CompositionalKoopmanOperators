@@ -15,7 +15,7 @@ from physics_engine import sample_init_p_flight
 from utils import rand_float, rand_int, calc_dis
 from utils import init_stat, combine_stat, load_data, store_data
 
-
+np.random.seed(42)
 # ======================================================================================================================
 def normalize(data, stat, var=False):
     for i in range(len(stat)):
@@ -181,7 +181,7 @@ def gen_Rope(info):
     n_rollout, time_step = info['n_rollout'], info['time_step']
     dt, video, args, phase = info['dt'], info['video'], info['args'], info['phase']
 
-    np.random.seed(round(time.time() * 1000 + thread_idx) % 2 ** 32)
+    #np.random.seed(round(time.time() * 1000 + thread_idx) % 2 ** 32)
 
     attr_dim = args.attr_dim  # root, child
     state_dim = args.state_dim  # x, y, xdot, ydot
@@ -209,22 +209,25 @@ def gen_Rope(info):
         sub_idx = rollout_idx // sub_dataset_size
 
         num_obj_range = args.num_obj_range if phase in {'train', 'valid'} else args.extra_num_obj_range
-        num_obj = num_obj_range[sub_idx]
+        num_obj = 7 #num_obj_range[sub_idx]
 
         rollout_dir = os.path.join(data_dir, str(rollout_idx))
 
         param_file = os.path.join(data_dir, str(group_idx) + '.param')
 
         os.system('mkdir -p ' + rollout_dir)
-
+        
         if rollout_idx % group_size == 0:
-            engine.init(param=(num_obj, None, None, None, None))
+            #engine.init(param=(num_obj, None, None, None, None))
+            engine.init(param=(7, 0, 1000, 30, 3))
+            print('saved to ',param_file)
             torch.save(engine.get_param(), param_file)
         else:
             while not os.path.isfile(param_file):
                 time.sleep(0.5)
             param = torch.load(param_file)
-            engine.init(param=param)
+            #engine.init(param=param)
+            engine.init(param=(7, 0, 1000, 30, 3))
 
         for j in range(time_step):
             states_ctl = engine.get_state()[0]
@@ -613,6 +616,7 @@ class PhysicsDataset(Dataset):
         print("Training data generated, warpping up stats ...")
 
         if self.phase == 'train':
+        #if self.phase == 'valid' and self.args.gen_data:
             # states [x, y, angle, xdot, ydot, angledot], action [x, xdot]
             if env in ['Rope', 'Soft', 'Swim']:
                 self.stat = [init_stat(self.args.attr_dim),
@@ -645,6 +649,7 @@ class PhysicsDataset(Dataset):
         seq_data = None
         for t in range(self.T + 1):
             data_path = os.path.join(self.data_dir, str(idx_rollout), str(idx_timestep + t) + '.h5')
+            print('load data from', data_path)
             data = load_data(self.data_names, data_path)
             data = prepare_input(data, self.stat, self.args)
             if seq_data is None:
@@ -699,5 +704,6 @@ if __name__ == '__main__':
         args.param_dim = 4
         args.n_splits = 10
 
-    dataset = PhysicsDataset(args, phase='train')
+    #dataset = PhysicsDataset(args, phase='train')
+    dataset = PhysicsDataset(args, phase='valid')
     dataset.gen_data()

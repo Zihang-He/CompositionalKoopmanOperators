@@ -37,7 +37,7 @@ parser.add_argument('--regular_data', type=int, default=0, help='generate regula
 parser.add_argument('--num_workers', type=int, default=10)
 parser.add_argument('--gen_data', type=int, default=0, help="whether to generate new data")
 parser.add_argument('--gen_stat', type=int, default=1, help="whether to generate statistic for the data")
-parser.add_argument('--group_size', type=int, default=25, help='# of episodes sharing the same physical parameters')
+parser.add_argument('--group_size', type=int, default=10, help='# of episodes sharing the same physical parameters')
 
 '''
 train
@@ -94,7 +94,7 @@ def gen_args():
     if args.env == 'Rope':
         args.data_names = ['attrs', 'states', 'actions']
 
-        args.n_rollout = 10000
+        args.n_rollout = 2000
         args.train_valid_ratio = 0.9
 
         args.time_step = 101
@@ -118,7 +118,7 @@ def gen_args():
     elif args.env == 'Soft':
         args.data_names = ['attrs', 'states', 'actions']
 
-        args.n_rollout = 50000
+        args.n_rollout = 1000
         args.train_valid_ratio = 0.9
 
         args.time_step = 101
